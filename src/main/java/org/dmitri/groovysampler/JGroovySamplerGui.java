@@ -112,7 +112,7 @@ public class JGroovySamplerGui extends AbstractSamplerGui {
      * @return the panel for entering the data
      */
     private Component createDataPanel() {
-        JLabel label = new JLabel(/*JMeterUtils.getResString("example_data")*/"gRPC sampler"); //$NON-NLS-1$
+        JLabel label = new JLabel(/*JMeterUtils.getResString("example_data")*/"Groovy script"); //$NON-NLS-1$
 
         data = new JTextArea();
         data.setName(JGroovySampler.DATA);

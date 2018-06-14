@@ -6,9 +6,12 @@ import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testbeans.TestBean;
+import org.apache.jmeter.testelement.property.JMeterProperty;
+import org.codehaus.groovy.tools.GroovyClass;
 import org.dmitri.jmeter.LifecycleSampler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 
 public class JGroovySampler extends AbstractSampler  implements TestBean,LifecycleSampler{
@@ -18,27 +21,57 @@ public class JGroovySampler extends AbstractSampler  implements TestBean,Lifecyc
     private static final Logger log = LoggerFactory.getLogger(JGroovySampler.class);
 
     // The name of the property used to hold our data
-    public static final String DATA = "grovy.sampler.data"; //$NON-NLS-1$
+    public static final String DATA = JGroovySampler.class.getSimpleName()+ ".data"; //$NON-NLS-1$
 
     private static AtomicInteger classCount = new AtomicInteger(0); // keep track of classes created
 
     // (for instructional purposes only!)
+    private static GroovyClass groovyClass;
+    
+    
 
     public JGroovySampler() {
-        classCount.incrementAndGet();
-        trace("JGroovySampler:JGroovySampler()");
+        
+        int count = classCount.incrementAndGet();
+        if(count == 1)
+            afterConstruct();
+        info("JGroovySampler:JGroovySampler() version 1.0.1");
     }
 
     
     @Override
     public void afterConstruct() {
         trace("JGroovySampler:afterConstruct()");
+        //final GroovyClassLoader classLoader = new GroovyClassLoader(Beans.class.getClassLoader(),
+        //        new CompilerConfiguration(), true);
+        //final Class<Predicate> clz = classLoader.parseClass(script
     }
 
     @Override
     public SampleResult sample(Entry entry) {
+        
+        log.info("get data "+getData());
         trace("JGroovySampler:sample()");
-        return null;
+        
+        SampleResult res = new SampleResult();
+        
+        res.setSampleLabel(getTitle());
+        res.setSamplerData(getData());
+        res.setResponseData("", null);
+        res.setDataType(SampleResult.TEXT);
+        
+        res.sampleStart(); // Start timing
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+        }
+        res.sampleEnd(); // End timing
+
+        res.setResponseCodeOK();
+        res.setResponseMessage("OK");// $NON-NLS-1$
+        res.setSuccessful(true);        
+        
+        return res;
     }
 
     @Override
@@ -99,7 +132,8 @@ public class JGroovySampler extends AbstractSampler  implements TestBean,Lifecyc
      * @return the data for the sample
      */
     public String getData() {
-        return getPropertyAsString(DATA);
+        String data = getPropertyAsString(DATA);
+        return data;
     }
 
     /*
@@ -111,4 +145,21 @@ public class JGroovySampler extends AbstractSampler  implements TestBean,Lifecyc
         String th = this.toString();
         log.debug(tn + " (" + classCount.get() + ") " + tl + " " + s + " " + th);
     }
+    
+    private void info(String s) {
+        String tl = getTitle();
+        String tn = Thread.currentThread().getName();
+        String th = this.toString();
+        log.info(tn + " (" + classCount.get() + ") " + tl + " " + s + " " + th);
+    }
+
+
+    @Override
+    public void setProperty(JMeterProperty property) {
+        // TODO Auto-generated method stub
+        super.setProperty(property);
+        info("property "+property);
+    }
+    
+    
 }
