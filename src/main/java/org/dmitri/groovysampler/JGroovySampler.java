@@ -1,17 +1,12 @@
 package org.dmitri.groovysampler;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.jmeter.gui.action.ActionRouter;
-import org.apache.jmeter.gui.action.CheckDirty;
 import org.apache.jmeter.samplers.AbstractSampler;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testbeans.TestBean;
+import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.dmitri.jmeter.LifecycleSampler;
 import org.slf4j.Logger;
@@ -19,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import groovy.lang.GroovyClassLoader;
 
-public class JGroovySampler extends AbstractSampler implements TestBean,  ActionListener {
+public class JGroovySampler extends AbstractSampler implements TestBean {
 
     private static final long serialVersionUID = 240L;
 
@@ -31,27 +26,24 @@ public class JGroovySampler extends AbstractSampler implements TestBean,  Action
     private static AtomicInteger classCount = new AtomicInteger(0); // keep track of classes created
 
     // (for instructional purposes only!)
-    private static JGroovyContext context;
+    private JGroovyContext context;
 
     public JGroovySampler() {
 
         int count = classCount.incrementAndGet();
-        if (count == 1)
-            setupActionListener();
         info("JGroovySampler:JGroovySampler() version 1.0.1 #" + count);
     }
 
-    private void setupActionListener() {
-        info("JGroovySampler:setupActionListener()");
-        ActionRouter.getInstance().addPostActionListener(CheckDirty.class, this);
-    }
-
     @Override
-    public void actionPerformed(ActionEvent e) {
-        if (context != null)
-            return;
-        context = buildContext();
-        context.getSampler().afterConstruct(context);
+    public void setProperty(JMeterProperty property) {
+        super.setProperty(property);
+        if(property.getName().equals(DATA)) {
+            if (context == null)
+                context = buildContext();
+            if (context != null)
+                context.getSampler().afterConstruct(context);    
+        }
+            
     }
 
     @SuppressWarnings("unchecked")
@@ -69,7 +61,7 @@ public class JGroovySampler extends AbstractSampler implements TestBean,  Action
         try {
             newInstance = parseClass.getDeclaredConstructor().newInstance();
             classLoader.close();
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | IOException e) {
+        } catch (Exception e) {
             log.error("failed ",e);
             return null;
         }

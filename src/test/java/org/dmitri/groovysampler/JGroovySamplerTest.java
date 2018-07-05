@@ -13,7 +13,6 @@ public class JGroovySamplerTest {
     public void makeGroovyClass() throws Exception {
         JGroovySampler groovySampler = new JGroovySampler();
         groovySampler.setProperty(JGroovySampler.DATA, readTestGroovy());
-        groovySampler.actionPerformed(null); //setup context
         Entry entry=null;
         groovySampler.sample(entry);
     }
